@@ -6,11 +6,11 @@ const ytdl = require('ytdl-core');
 module.exports = class MusicPlayer {
 
   constructor(){
-    this.serversQueue = new Map();
+    this.servers = new Map();
   }
 
   queue({ channel, guild }){
-    const serverQueue = this.serversQueue.get(guild.id);
+    const serverQueue = this.servers.get(guild.id);
 
     if(!serverQueue) return channel.send(getBotMessage('EMPTY_QUEUE'));
 
@@ -31,7 +31,7 @@ module.exports = class MusicPlayer {
     if (!member.voice.channel)
     return channel.send(getBotMessage('NOT_IN_VOICE_CHANNEL'));
 
-    const serverQueue = this.serversQueue.get(guild.id);
+    const serverQueue = this.servers.get(guild.id);
 
     if (!serverQueue)
       return channel.send(getBotMessage('NO_SONG_TO_SKIP'));
@@ -43,7 +43,7 @@ module.exports = class MusicPlayer {
     if (!member.voice.channel)
       return channel.send(getBotMessage('NOT_IN_VOICE_CHANNEL'));
 
-    const serverQueue = this.serversQueue.get(guild.id);
+    const serverQueue = this.servers.get(guild.id);
     
     if (!serverQueue)
       return channel.send(getBotMessage('NO_SONG_TO_STOP'));
@@ -54,7 +54,7 @@ module.exports = class MusicPlayer {
 
   remove(message, position){;
     const { channel, guild } = message;
-    const serverQueue = this.serversQueue.get(guild.id);
+    const serverQueue = this.servers.get(guild.id);
     
     if(position > serverQueue.songs.length + 1) return channel.send(getBotMessage('INVALID_REMOVE_POSITION'));
     
@@ -78,7 +78,7 @@ module.exports = class MusicPlayer {
         return channel.send(getBotMessage('NO_VOICE_PERMISSION'));
       }
 
-      const serverQueue = this.serversQueue.get(guild.id);
+      const serverQueue = this.servers.get(guild.id);
       const args = content.split(/ (.+)/); // split only on first space occurrence
       const song = await searchSongInfo(args[1]);
 
@@ -90,21 +90,24 @@ module.exports = class MusicPlayer {
           connection: null,
           songs: [],
           volume: 5,
-          playing: null
+          playing: null,
+          next: (self) => {
+            const song = self.songs.shift();
+            self.playing = song;
+            return song;
+          }
         };
 
-        this.serversQueue.set(guild.id, newQueue);
+        this.servers.set(guild.id, newQueue);
 
         newQueue.songs.push(song);
 
         try {
           const connection = await voiceChannel.join();
           newQueue.connection = connection;
-          const song = newQueue.songs.shift();
-          newQueue.playing = song;
-          this.playSong(guild, song);
+          this.playSong(guild, newQueue.next(newQueue));
         } catch (err) {
-          this.serversQueue.delete(guild.id);
+          this.servers.delete(guild.id);
           return channel.send(err);
         }
 
@@ -120,30 +123,26 @@ module.exports = class MusicPlayer {
   }
 
   playSong(guild, song){
-    const serverQueue = this.serversQueue.get(guild.id);
+    const serverQueue = this.servers.get(guild.id);
 
     try {
       if(!song){
         serverQueue.voiceChannel.leave();
-        this.serversQueue.delete(guild.id);
+        this.servers.delete(guild.id);
         return;
       }
   
       const dispatcher = serverQueue.connection
         .play(ytdl(song.url))
         .on("finish", () => {
-          const song = serverQueue.songs.shift();
-          serverQueue.playing = song;
-          this.playSong(guild, song);
+          this.playSong(guild, serverQueue.next(serverQueue));
         })
         .on("error", error => console.error(error));
       
       dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
       serverQueue.textChannel.send(getComposedMessage('PLAY_SONG', song));
     } catch(err){
-      const song = serverQueue.songs.shift();
-      serverQueue.playing = song;
-      this.playSong(guild, song);
+      this.playSong(guild, serverQueue.next(serverQueue));
     }
   }
 }
