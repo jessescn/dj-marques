@@ -3,7 +3,7 @@ const { prefix } = require('../metadata.json')
 
 const config = {
   maxResults: 2,
-  key: process.env.YOUTUBE_TOKEN
+  key: process.env.YOUTUBE_API_V3_TOKEN,
 };
 
 exports.searchSongInfo = async (userSearch) => {

@@ -81,7 +81,7 @@ module.exports = class MusicPlayer {
       const serverQueue = this.servers.get(guild.id);
       const args = content.split(/ (.+)/); // split only on first space occurrence
       const song = await searchSongInfo(args[1]);
-
+      
       if (!serverQueue){
 
         const newQueue = {
@@ -92,9 +92,9 @@ module.exports = class MusicPlayer {
           volume: 5,
           playing: null,
           next: (self) => {
-            const song = self.songs.shift();
-            self.playing = song;
-            return song;
+            const nextSong = self.songs.shift();
+            self.playing = nextSong;
+            return nextSong;
           }
         };
 
