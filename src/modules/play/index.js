@@ -1,4 +1,5 @@
 
+const { getBotMessage, getComposedMessage } = require('../../utils/botMessages');
 const { searchSongInfo } = require('../../utils/functions');
 const ytdl = require('ytdl-core');
 
@@ -11,110 +12,110 @@ module.exports = class MusicPlayer {
   queue({ channel, guild }){
     const serverQueue = this.serversQueue.get(guild.id);
 
-    if(!serverQueue) return channel.send('A fila do DJ André Marques tá vazia! Aproveita e pede a tua!');
+    if(!serverQueue) return channel.send(getBotMessage('EMPTY_QUEUE'));
 
-    let queueMessage = "**Toma a lista das mais pedidas que vão tocar!**\n";
+    const { songs, playing } = serverQueue;
 
-    for(let i = 0; i < serverQueue.songs.length; i++){
-      const { title } = serverQueue.songs[i];
-      queueMessage += `${i + 1}. ${title}\n`;
+    let queueMessage = getComposedMessage('CURRENT_PLAYING', playing);
+
+    queueMessage += songs.length > 0 ? getBotMessage('LIST_QUEUE_TITLE') : getBotMessage('EMPTY_QUEUE');
+
+    for(let i = 0; i < songs.length; i++){
+      queueMessage += `${i + 1}. ${songs[i].title}\n`;
     }
 
     return channel.send(queueMessage);
   }
 
   skip({ member, guild, channel }){
-    const serverQueue = this.serversQueue.get(guild.id);
     if (!member.voice.channel)
-      return channel.send(
-        "You have to be in a voice channel to stop the music!"
-      );
+    return channel.send(getBotMessage('NOT_IN_VOICE_CHANNEL'));
+
+    const serverQueue = this.serversQueue.get(guild.id);
+
     if (!serverQueue)
-      return channel.send("There is no song that I could skip!");
+      return channel.send(getBotMessage('NO_SONG_TO_SKIP'));
 
     this.playSong(guild, serverQueue.songs.shift());
   }
 
   stop({ member, guild, channel }){
-    const serverQueue = this.serversQueue.get(guild.id);
     if (!member.voice.channel)
-    return channel.send(
-      "You have to be in a voice channel to stop the music!"
-    );
+      return channel.send(getBotMessage('NOT_IN_VOICE_CHANNEL'));
+
+    const serverQueue = this.serversQueue.get(guild.id);
     
     if (!serverQueue)
-      return channel.send("There is no song that I could stop!");
+      return channel.send(getBotMessage('NO_SONG_TO_STOP'));
       
     serverQueue.songs = [];
     serverQueue.connection.dispatcher.end();
   }
 
-  remove(message, position){
-    console.log(position);
+  remove(message, position){;
     const { channel, guild } = message;
     const serverQueue = this.serversQueue.get(guild.id);
     
-    if(position > serverQueue.songs.length + 1) return channel.send("Sei dessa musica ai não bixo");
+    if(position > serverQueue.songs.length + 1) return channel.send(getBotMessage('INVALID_REMOVE_POSITION'));
     
     const song = serverQueue.songs.splice(position - 1, 1)[0];
-    console.log(song);
+
     if(song){
-      channel.send(`Sem bronca meu brother! toco ${song.title} mais não`);
-      return this.queue(message);
+      return channel.send(getComposedMessage('REMOVE_SONG_SUCCESSFULLY', song));
     }
   }
 
   async play({ guild, content, member, channel, client }){
     try {
-      const serverQueue = this.serversQueue.get(guild.id);
       const voiceChannel = member.voice.channel;
   
       if (!voiceChannel)
-        return channel.send(
-          "You need to be in a voice channel to play music!"
-        );
+        return channel.send(getBotMessage('NOT_IN_VOICE_CHANNEL'));
   
       const permissions = voiceChannel.permissionsFor(client.user);
+
       if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
-        return channel.send(
-          "I need the permissions to join and speak in your voice channel!"
-        );
+        return channel.send(getBotMessage('NO_VOICE_PERMISSION'));
       }
 
+      const serverQueue = this.serversQueue.get(guild.id);
       const args = content.split(/ (.+)/); // split only on first space occurrence
       const song = await searchSongInfo(args[1]);
 
-      if(!serverQueue){
-        const queueContruct = {
+      if (!serverQueue){
+
+        const newQueue = {
           textChannel: channel,
           voiceChannel: voiceChannel,
           connection: null,
           songs: [],
           volume: 5,
-          playing: true
+          playing: null
         };
 
-        this.serversQueue.set(guild.id, queueContruct);
+        this.serversQueue.set(guild.id, newQueue);
 
-        queueContruct.songs.push(song);
+        newQueue.songs.push(song);
 
         try {
-          var connection = await voiceChannel.join();
-          queueContruct.connection = connection;
-          this.playSong(guild, queueContruct.songs.shift());
+          const connection = await voiceChannel.join();
+          newQueue.connection = connection;
+          const song = newQueue.songs.shift();
+          newQueue.playing = song;
+          this.playSong(guild, song);
         } catch (err) {
           this.serversQueue.delete(guild.id);
           return channel.send(err);
         }
 
-      }else {
+      } else {
         serverQueue.songs.push(song);
-        return channel.send(`Relaxe! jajá eu toco **${song.title}**, meu bom!`);
+        return channel.send(getComposedMessage('ADD_SONG_TO_QUEUE', song));
       }
 
     } catch(err){
       console.log(err);
-      return channel.send('Erro ao lançar a braba');
+      return channel.send(getBotMessage('ERROR_PLAYING_SONG'));
     }
   }
 
@@ -129,16 +130,20 @@ module.exports = class MusicPlayer {
       }
   
       const dispatcher = serverQueue.connection
-      .play(ytdl(song.url))
-      .on("finish", () => {
-        serverQueue.songs.shift();
-        this.playSong(guild, serverQueue.songs.shift());
-      })
+        .play(ytdl(song.url))
+        .on("finish", () => {
+          const song = serverQueue.songs.shift();
+          serverQueue.playing = song;
+          this.playSong(guild, song);
+        })
         .on("error", error => console.error(error));
+      
       dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
-      serverQueue.textChannel.send(`Deixa o garoto brincar ao som de **${song.title}**`);
+      serverQueue.textChannel.send(getComposedMessage('PLAY_SONG', song));
     } catch(err){
-      this.playSong(guild, serverQueue.songs.shift());
+      const song = serverQueue.songs.shift();
+      serverQueue.playing = song;
+      this.playSong(guild, song);
     }
   }
 }

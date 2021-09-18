@@ -2,7 +2,9 @@ require('dotenv').config();
 const Discord = require("discord.js");
 const Player = require('./modules/play');
 
-const { prefix } = require("../config.json");
+const { prefix } = require("./metadata.json");
+const { isInvalidMessage } = require("./utils/functions");
+const { getReplyMessage } = require('./utils/botMessages');
 
 const client = new Discord.Client();
 const musicPlayer = new Player();
@@ -20,10 +22,9 @@ client.once("disconnect", () => {
 });
 
 client.on("message", async message => {
-  const { content, author, channel } = message;
-  if (author.bot) return;
-  if (!content.startsWith(prefix)) return;
+  if (isInvalidMessage(message)) return;
 
+  const { content, channel } = message;
   const command = content.split(/ (.+)/)[0];
 
   if (content.startsWith(`${prefix}play`) || command === `${prefix}p`) {
@@ -43,7 +44,7 @@ client.on("message", async message => {
     musicPlayer.remove(message, parseInt(position));
     return;
   } else {
-    channel.send("DJABO É ISSO!");
+    channel.send(getReplyMessage('COMMAND_NOT_FOUND'));
   }
 });
 

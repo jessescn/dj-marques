@@ -1,4 +1,5 @@
 const search = require('youtube-search');
+const { prefix } = require('../metadata.json')
 
 const config = {
   maxResults: 2,
@@ -17,4 +18,8 @@ exports.searchSongInfo = async (userSearch) => {
     title,
     url: link,
   }
+}
+
+exports.isInvalidMessage = ({ author, content }) => {
+  return author.bot || !content.startsWith(prefix);
 }
