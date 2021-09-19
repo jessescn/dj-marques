@@ -25,24 +25,20 @@ client.on("message", async message => {
   if (isInvalidMessage(message)) return;
 
   const { content, channel } = message;
-  const command = content.split(/ (.+)/)[0];
+  const userCmd = content.split(/ (.+)/)[0];
 
-  if (content.startsWith(`${prefix}play`) || command === `${prefix}p`) {
+  if ([`${prefix}play`, `${prefix}p`].includes(userCmd)) {
     musicPlayer.play(message);
-    return;
-  } else if (content.startsWith(`${prefix}skip`)) {
+  } else if ([`${prefix}skip`, `${prefix}skp`].includes(userCmd)) {
     musicPlayer.skip(message);
-    return;
-  } else if (content.startsWith(`${prefix}stop`)) {
+  } else if ([`${prefix}stop`, `${prefix}stp`].includes(userCmd)) {
     musicPlayer.stop(message);
-    return;
-  } else if (content.startsWith(`${prefix}queue`)) {
+  } else if ([`${prefix}queue`, `${prefix}qeue`, `${prefix}queu`].includes(userCmd)) {
     musicPlayer.queue(message);
-    return;
-  } else if (content.startsWith(`${prefix}remove`)) {
+  } else if ([`${prefix}remove`, `${prefix}rmv`].includes(userCmd)) {
     const position = content.split(/ (.+)/)[1];
+    if(!position) return channel.send('You must provide song position to remove');
     musicPlayer.remove(message, parseInt(position));
-    return;
   } else {
     channel.send(getReplyMessage('COMMAND_NOT_FOUND'));
   }

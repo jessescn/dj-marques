@@ -56,7 +56,7 @@ module.exports = class MusicPlayer {
     const { channel, guild } = message;
     const serverQueue = this.servers.get(guild.id);
     
-    if(position > serverQueue.songs.length + 1) return channel.send(getBotMessage('INVALID_REMOVE_POSITION'));
+    if(!serverQueue || position > serverQueue.songs.length + 1) return channel.send(getBotMessage('INVALID_REMOVE_POSITION'));
     
     const song = serverQueue.songs.splice(position - 1, 1)[0];
 
@@ -142,6 +142,8 @@ module.exports = class MusicPlayer {
       dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
       serverQueue.textChannel.send(getComposedMessage('PLAY_SONG', song));
     } catch(err){
+      console.log(err);
+      serverQueue.textChannel.send(getBotMessage('ERROR_PLAYING_SONG'));
       this.playSong(guild, serverQueue.next(serverQueue));
     }
   }
