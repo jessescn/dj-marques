@@ -14,3 +14,5 @@ export type Song = {
   title: string;
   url: string;
 }
+
+export type CustomTextChannel = TextChannel | DMChannel | NewsChannel;
