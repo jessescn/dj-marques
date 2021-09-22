@@ -24,6 +24,8 @@
     "ytdl-core": "^4.9.1"
   },
   "devDependencies": {
+    "@types/ffmpeg": "^1.0.4",
+    "@types/fluent-ffmpeg": "^2.1.18",
     "@types/node": "^16.9.4",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",

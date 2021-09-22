@@ -1,5 +1,4 @@
 import search from 'youtube-search';
-import {prefix} from '../metadata.json';
 import { Song } from '../types/play';
 import { Client, GuildMember, Message } from 'discord.js';
 
@@ -21,7 +20,7 @@ export const searchSongInfo = async (userSearch: string):Promise<Song> => {
   };
 };
 
-export const isInvalidMessage = ({author, content }: Message): boolean => {
+export const isInvalidMessage = ({author, content }: Message, prefix: string): boolean => {
   return author.bot || !content.startsWith(prefix);
 };
 

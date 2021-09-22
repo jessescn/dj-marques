@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { Song } from '../types/play';
-import {name as botName} from '../metadata.json';
+import { name as botName } from '../metadata.json';
 
 const messages: Record<string, string> = {
   COMMAND_NOT_FOUND: 'DJABO É ISSO!',
@@ -12,9 +12,10 @@ const messages: Record<string, string> = {
   NO_SONG_TO_STOP: 'There is no song that I could stop!',
   INVALID_REMOVE_POSITION: 'Sei dessa musica ai não bixo',
   SONG_NOT_FOUND: 'Música não encontrada',
-  SKIP_SONG_SUCESSFULLY: 'Música removida com sucesso',
+  SKIP_SONG_SUCESSFULLY: 'Música passada com sucesso',
   STOP_BOT_SUCESSFULLY: 'Dando fora daqui tá ligado mermão',
-  END_OF_SONGS: 'Lista das mais pedidas finalizada!'
+  END_OF_SONGS: 'Lista das mais pedidas finalizada!',
+  EFFECT_NOT_FOUND: 'Sei mandar esse efeito ai nao',
 };
 
 
@@ -26,7 +27,9 @@ const errors: Record<string, string> = {
   ERROR_REMOVE_ACTION: 'Erro ao remover música',
   ERROR_CONNECTING_CHANNEL: 'Erro ao se conectar ao canal',
   ERROR_PLAY_MODULE: 'Error on player module',
+  ERROR_EFFECT_MODULE: 'Error on effect module',
   ERROR_ADD_SERVER_QUEUE: 'Erro ao reiniciar o estado do servidor',
+  ERROR_PLAYING_EFFECT: 'Erro ao executar arquivo',
 }
 
 export const getErrorMessage = (type: string): string => {
@@ -52,7 +55,7 @@ export const getComposedMessage = (type: string, song: Song): string => {
       break;
     case 'CURRENT_PLAYING':
       composedMessage = `🎤 ${botName} tá mandando a boa ao som de **${song.title}**\n\n`;
-      break;
+      break; 
     default:
       break;
   }
