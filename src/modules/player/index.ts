@@ -12,7 +12,7 @@ export default class MusicPlayer {
     this.servers = new Map();
   }
 
-  handleUserCommand(message: Message, prefix: string): Promise<Message> | undefined {
+  handleCommand(message: Message, prefix: string): Promise<Message> | undefined {
     const { content, channel } = message;
     
     try {
@@ -71,6 +71,7 @@ export default class MusicPlayer {
       return channel.send(queueMessage);
     } catch(error) {
       console.log(error);
+      if(guild) this.servers.delete(guild.id);
       return channel.send(getErrorMessage('ERROR_QUEUE_ACTION'));
     }
   }
@@ -93,6 +94,7 @@ export default class MusicPlayer {
       return channel.send(getMessage('SKIP_SONG_SUCESSFULLY'));
     } catch (error) {
       console.log(error);
+      if(guild) this.servers.delete(guild.id);
       return channel.send(getErrorMessage('ERROR_SKIP_ACTION'));
     }
   }
@@ -118,6 +120,7 @@ export default class MusicPlayer {
 
     } catch(error){
       console.log(error);
+      if(guild) this.servers.delete(guild.id);
       return channel.send(getErrorMessage('ERROR_STOP_ACTION'));
     }
   }
@@ -138,6 +141,7 @@ export default class MusicPlayer {
       return channel.send(getComposedMessage('REMOVE_SONG_SUCCESSFULLY', song));
     } catch(error) {
       console.log(error);
+      if(guild) this.servers.delete(guild.id);
       return channel.send(getErrorMessage('ERROR_REMOVE_ACTION'));
     }
   }

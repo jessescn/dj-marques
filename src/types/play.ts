@@ -1,4 +1,6 @@
 import { VoiceChannel, TextChannel, DMChannel, NewsChannel, VoiceConnection } from 'discord.js';
+import Effect from '../modules/effects';
+import MusicPlayer from '../modules/player';
 
 export type ServerQueue = {
   textChannel: TextChannel | DMChannel | NewsChannel,
@@ -16,3 +18,5 @@ export type Song = {
 }
 
 export type CustomTextChannel = TextChannel | DMChannel | NewsChannel;
+
+export type BotModule = MusicPlayer | Effect;
