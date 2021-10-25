@@ -2,7 +2,7 @@
 
 After his hibernation occurred by VideoShow, the god has finnally awake and he plays disco smoking cigarettes! 🙌
 
-Just a ordinary discord bot to listen songs with your friends on your ordinary server (pls youtube don't process me)
+Just a ordinary discord bot to listen songs with your friends on your ordinary server (pls youtube don't sue me)
 
 [Summon in your discord](https://discord.com/api/oauth2/authorize?client_id=888590468995239976&permissions=326454426944&scope=bot%20applications.commands)
 
