@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon",
+    "dev": "nodemon",
+    "start": "npm run build && node build/bot.js",
     "prod": "npm run build && node build/bot.js",
     "build": "rimraf ./build && tsc",
     "lint": "eslint . --ext .ts",
